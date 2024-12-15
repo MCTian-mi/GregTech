@@ -6,14 +6,19 @@ import gregtech.api.block.VariantItemBlock;
 import gregtech.api.block.machines.MachineItemBlock;
 import gregtech.api.items.metaitem.MetaItem;
 import gregtech.api.items.toolitem.IGTTool;
+import gregtech.api.nuclear.fission.CoolantRegistry;
+import gregtech.api.nuclear.fission.FissionFuelRegistry;
 import gregtech.api.recipes.GTRecipeInputCache;
 import gregtech.api.recipes.ModHandler;
 import gregtech.api.recipes.ingredients.GTRecipeOreInput;
 import gregtech.api.recipes.recipeproperties.FusionEUToStartProperty;
 import gregtech.api.terminal.TerminalRegistry;
+import gregtech.api.unification.OreDictUnifier;
 import gregtech.api.unification.material.Material;
 import gregtech.api.unification.material.info.MaterialFlags;
+import gregtech.api.unification.material.properties.CoolantProperty;
 import gregtech.api.unification.material.properties.DustProperty;
+import gregtech.api.unification.material.properties.FissionFuelProperty;
 import gregtech.api.unification.material.properties.PropertyKey;
 import gregtech.api.unification.material.registry.MaterialRegistry;
 import gregtech.api.unification.ore.OrePrefix;
@@ -21,7 +26,16 @@ import gregtech.api.unification.ore.StoneType;
 import gregtech.api.unification.stack.ItemMaterialInfo;
 import gregtech.api.util.AssemblyLineManager;
 import gregtech.api.util.GTLog;
-import gregtech.common.blocks.*;
+import gregtech.common.blocks.BlockCompressed;
+import gregtech.common.blocks.BlockFrame;
+import gregtech.common.blocks.BlockLamp;
+import gregtech.common.blocks.BlockOre;
+import gregtech.common.blocks.BlockSurfaceRock;
+import gregtech.common.blocks.LampItemBlock;
+import gregtech.common.blocks.MaterialItemBlock;
+import gregtech.common.blocks.MetaBlocks;
+import gregtech.common.blocks.OreItemBlock;
+import gregtech.common.blocks.StoneVariantBlock;
 import gregtech.common.items.MetaItems;
 import gregtech.common.items.ToolItems;
 import gregtech.common.pipelike.cable.BlockCable;
@@ -123,6 +137,9 @@ public class CommonProxy {
         registry.register(CLEANROOM_CASING);
         registry.register(COMPUTER_CASING);
         registry.register(BATTERY_BLOCK);
+        registry.register(FISSION_CASING);
+        registry.register(NUCLEAR_CASING);
+        registry.register(GAS_CENTRIFUGE_CASING);
         registry.register(FOAM);
         registry.register(REINFORCED_FOAM);
         registry.register(PETRIFIED_FOAM);
@@ -161,6 +178,7 @@ public class CommonProxy {
         registry.register(METAL_SHEET);
         registry.register(LARGE_METAL_SHEET);
         registry.register(STUDS);
+        registry.register(PANELLING);
 
         for (BlockLamp block : LAMPS.values()) registry.register(block);
         for (BlockLamp block : BORDERLESS_LAMPS.values()) registry.register(block);
@@ -263,6 +281,10 @@ public class CommonProxy {
             registry.register(createItemBlock(block, LampItemBlock::new));
         }
         registry.register(createItemBlock(ASPHALT, VariantItemBlock::new));
+        registry.register(createItemBlock(FISSION_CASING, VariantItemBlock::new));
+        registry.register(createItemBlock(NUCLEAR_CASING, VariantItemBlock::new));
+        registry.register(createItemBlock(GAS_CENTRIFUGE_CASING, VariantItemBlock::new));
+        registry.register(createItemBlock(PANELLING, VariantItemBlock::new));
         for (StoneVariantBlock block : STONE_BLOCKS.values()) {
             registry.register(createItemBlock(block, VariantItemBlock::new));
         }
@@ -397,6 +419,18 @@ public class CommonProxy {
 
         if (ConfigHolder.compat.removeSmeltingForEBFMetals) {
             ModHandler.removeSmeltingEBFMetals();
+        }
+
+        for (Material material : GregTechAPI.materialManager.getRegisteredMaterials()) {
+            if (material.hasProperty(PropertyKey.FISSION_FUEL)) {
+                FissionFuelProperty prop = material.getProperty(PropertyKey.FISSION_FUEL);
+                FissionFuelRegistry.registerFuel(OreDictUnifier.get(OrePrefix.fuelRod, material), prop,
+                        OreDictUnifier.get(OrePrefix.fuelRodHotDepleted, material));
+            }
+            if (material.hasProperty(PropertyKey.COOLANT)) {
+                CoolantProperty prop = material.getProperty(PropertyKey.COOLANT);
+                CoolantRegistry.registerCoolant(material.getFluid(prop.getCoolantKey()), prop);
+            }
         }
     }
 

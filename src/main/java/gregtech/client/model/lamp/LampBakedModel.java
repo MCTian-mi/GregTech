@@ -16,12 +16,16 @@ import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.embeddedt.vintagefix.dynamicresources.model.DynamicBakedModelProvider;
+import org.embeddedt.vintagefix.event.DynamicModelBakeEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import team.chisel.ctm.client.model.ModelBakedCTM;
 
 import java.util.*;
 
@@ -142,7 +146,7 @@ public class LampBakedModel implements IBakedModel {
             Entry entry = e.getValue();
             if (entry.customItemModel != null) {
                 IBakedModel model = event.getModelRegistry().getObject(entry.originalModelLocation);
-                if (model != null) {
+                if (model != null && !(model instanceof ModelBakedCTM)) {
                     // Directly provide existing model to prevent using CTM models
                     IBakedModel customModel = e.getKey().modelType.createModel(model);
                     event.getModelRegistry().putObject(entry.customItemModel, customModel);
@@ -152,6 +156,25 @@ public class LampBakedModel implements IBakedModel {
                 // Lazy populate model with model location to use CTM models
                 IBakedModel customModel = e.getKey().modelType.createModel(entry.originalModelLocation);
                 event.getModelRegistry().putObject(entry.customBlockModel, customModel);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onDynModelBake(DynamicModelBakeEvent event) {
+        if(!(event.location instanceof ModelResourceLocation)) return;
+
+        for (Map.Entry<Key, Entry> e : ENTRIES.entrySet()) {
+            Entry entry = e.getValue();
+            if (entry.originalModelLocation == event.location) {
+                if (entry.customItemModel != null) {
+                    IBakedModel model = event.bakedModel;
+                    if (model != null) {
+                        // Directly provide existing model to prevent using CTM models
+                        IBakedModel customModel = e.getKey().modelType.createModel(model);
+                        DynamicBakedModelProvider.instance.putObject(entry.customItemModel, customModel);
+                    }
+                }
             }
         }
     }

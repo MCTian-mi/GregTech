@@ -29,19 +29,19 @@ import static gregtech.api.metatileentity.IFastRenderMetaTileEntity.RENDER_PASS_
 import static gregtech.api.metatileentity.IFastRenderMetaTileEntity.RENDER_PASS_TRANSLUCENT;
 
 @SideOnly(Side.CLIENT)
-public class VBOSceneRenderer extends WorldSceneRenderer {
+public class VBOWorldSceneRenderer extends WorldSceneRenderer {
 
-    protected int[] vaos;
+//    protected int[] vaos;
     protected VertexBuffer[] vbos;
     protected boolean isDirty = true;
 
-    public VBOSceneRenderer(World world) {
+    public VBOWorldSceneRenderer(World world) {
         super(world);
         int layers = BlockRenderLayer.values().length;
-        this.vaos = new int[layers];
+//        this.vaos = new int[layers];
         this.vbos = new VertexBuffer[layers];
         for (int layer = 0; layer < layers; layer++) {
-            this.vaos[layer] = GL30.glGenVertexArrays();
+//            this.vaos[layer] = GL30.glGenVertexArrays();
             this.vbos[layer] = new VertexBuffer(DefaultVertexFormats.BLOCK);
         }
     }
@@ -82,16 +82,16 @@ public class VBOSceneRenderer extends WorldSceneRenderer {
 //                buffer.reset();
 
                 var vbo = this.vbos[layer.ordinal()];
-                int vao = this.vaos[layer.ordinal()];
+//                int vao = this.vaos[layer.ordinal()];
 
                 ByteBuffer data = buffer.getByteBuffer();
                 vbo.bufferData(data);
 
-                GL30.glBindVertexArray(vao);
-                vbo.bindBuffer();
-                setupArrayPointers();
-                GL30.glBindVertexArray(0);
-                vbo.unbindBuffer();
+//                GL30.glBindVertexArray(vao);
+//                vbo.bindBuffer();
+//                setupArrayPointers();
+//                GL30.glBindVertexArray(0);
+//                vbo.unbindBuffer();
 
 //                Tessellator.getInstance().getBuffer().setTranslation(0, 0, 0);
             }
@@ -139,14 +139,14 @@ public class VBOSceneRenderer extends WorldSceneRenderer {
             OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
             GlStateManager.glEnableClientState(GL11.GL_COLOR_ARRAY);
 
+//            int vao = this.vaos[layer.ordinal()];
             var vbo = this.vbos[layer.ordinal()];
-            int vao = this.vaos[layer.ordinal()];
-//            vboBuffer.bindBuffer();
-//            this.setupArrayPointers();
-            GL30.glBindVertexArray(vao);
+            vbo.bindBuffer();
+            this.setupArrayPointers();
+//            GL30.glBindVertexArray(vao);
             vbo.drawArrays(GL11.GL_QUADS);
-            GL30.glBindVertexArray(0);
-//            vbo.unbindBuffer();
+//            GL30.glBindVertexArray(0);
+            vbo.unbindBuffer();
 //            GlStateManager.resetColor();
 
 //            for (VertexFormatElement vertexformatelement : DefaultVertexFormats.BLOCK.getElements()) {
@@ -154,17 +154,16 @@ public class VBOSceneRenderer extends WorldSceneRenderer {
 //                int k1 = vertexformatelement.getIndex();
 //
 //                switch (enumUsage) {
-//                    case POSITION:
-//                        GlStateManager.glDisableClientState(GL11.GL_VERTEX_ARRAY);
-//                        break;
-//                    case UV:
+//                    case POSITION -> GlStateManager.glDisableClientState(GL11.GL_VERTEX_ARRAY);
+//                    case UV -> {
 //                        OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit + k1);
 //                        GlStateManager.glDisableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
 //                        OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
-//                        break;
-//                    case COLOR:
+//                    }
+//                    case COLOR -> {
 //                        GlStateManager.glDisableClientState(GL11.GL_COLOR_ARRAY);
 //                        GlStateManager.resetColor();
+//                    }
 //                }
 //            }
         }
@@ -213,7 +212,7 @@ public class VBOSceneRenderer extends WorldSceneRenderer {
     }
 
     @Override
-    public void setClearColor(int clearColor) {
-        super.setClearColor(0x00000000);
+    public void setClearColor(int ignored) {
+        super.setClearColor(0xFFFFFFFF);
     }
 }

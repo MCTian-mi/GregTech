@@ -167,7 +167,7 @@ public abstract class WorldSceneRenderer {
         int width = positionedRect.getSize().width;
         int height = positionedRect.getSize().height;
 
-        GlStateManager.pushAttrib();
+//        GlStateManager.pushAttrib();
 
         Minecraft.getMinecraft().entityRenderer.disableLightmap();
         GlStateManager.disableLighting();
@@ -294,10 +294,16 @@ public abstract class WorldSceneRenderer {
             GlStateManager.enableDepth();
             GlStateManager.disableBlend();
             GlStateManager.depthMask(true);
+            GlStateManager.shadeModel(GL11.GL_FLAT);
         } else { // TRANSLUCENT
+            GlStateManager.disableBlend();
+            GlStateManager.enableCull();
+            GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+            GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1F);
             GlStateManager.enableBlend();
-            GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GlStateManager.depthMask(false);
+            Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+            GlStateManager.shadeModel(GL11.GL_SMOOTH);
         }
     }
 

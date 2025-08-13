@@ -3,6 +3,7 @@ package gregtech.client.renderer.scene;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
@@ -108,6 +109,19 @@ public class VBOWorldSceneRenderer extends WorldSceneRenderer {
         this.isDirty = false;
     }
 
+    @Override
+    public void render(float x, float y, float width, float height, int mouseX, int mouseY) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.mouseX = mouseX;
+        this.mouseY = mouseY;
+        super.render(x, y, width, height, mouseX, mouseY);
+    }
+
+    protected float x, y, width, height, mouseX, mouseY;
+
 
     @Override
     protected void drawWorld() {
@@ -139,15 +153,19 @@ public class VBOWorldSceneRenderer extends WorldSceneRenderer {
             OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
             GlStateManager.glEnableClientState(GL11.GL_COLOR_ARRAY);
 
-//            int vao = this.vaos[layer.ordinal()];
-            var vbo = this.vbos[layer.ordinal()];
-            vbo.bindBuffer();
-            this.setupArrayPointers();
-//            GL30.glBindVertexArray(vao);
-            vbo.drawArrays(GL11.GL_QUADS);
-//            GL30.glBindVertexArray(0);
-            vbo.unbindBuffer();
-//            GlStateManager.resetColor();
+            GlStateManager.pushMatrix();
+            {
+                var sr = new ScaledResolution(mc);
+//                int vao = this.vaos[layer.ordinal()];
+                var vbo = this.vbos[layer.ordinal()];
+                vbo.bindBuffer();
+                setupArrayPointers();
+//                GL30.glBindVertexArray(vao);
+                vbo.drawArrays(GL11.GL_QUADS);
+//                GL30.glBindVertexArray(0);
+                vbo.unbindBuffer();
+            }
+            GlStateManager.popMatrix();
 
 //            for (VertexFormatElement vertexformatelement : DefaultVertexFormats.BLOCK.getElements()) {
 //                VertexFormatElement.EnumUsage enumUsage = vertexformatelement.getUsage();
@@ -184,12 +202,12 @@ public class VBOWorldSceneRenderer extends WorldSceneRenderer {
         return super.addRenderedBlocks(blocks);
     }
 
-    protected void setupArrayPointers() {
-        GlStateManager.glVertexPointer(3, 5126, 28, 0);
-        GlStateManager.glColorPointer(4, 5121, 28, 12);
-        GlStateManager.glTexCoordPointer(2, 5126, 28, 16);
+    protected static void setupArrayPointers() {
+        GlStateManager.glVertexPointer(3, GL11.GL_FLOAT, 28, 0);
+        GlStateManager.glColorPointer(4, GL11.GL_UNSIGNED_BYTE, 28, 12);
+        GlStateManager.glTexCoordPointer(2, GL11.GL_FLOAT, 28, 16);
         OpenGlHelper.setClientActiveTexture(OpenGlHelper.lightmapTexUnit);
-        GlStateManager.glTexCoordPointer(2, 5122, 28, 24);
+        GlStateManager.glTexCoordPointer(2, GL11.GL_SHORT, 28, 24);
         OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
     }
 
@@ -209,10 +227,5 @@ public class VBOWorldSceneRenderer extends WorldSceneRenderer {
         }
         ForgeHooksClient.setRenderPass(-1);
         RenderHelper.disableStandardItemLighting();
-    }
-
-    @Override
-    public void setClearColor(int ignored) {
-        super.setClearColor(0xFFFFFFFF);
     }
 }
